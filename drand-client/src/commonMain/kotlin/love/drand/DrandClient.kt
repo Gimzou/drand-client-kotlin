@@ -1,7 +1,6 @@
 package love.drand
 
 import io.ktor.utils.io.core.Closeable
-import kotlinx.coroutines.sync.Mutex
 import love.drand.network.DrandApi
 import love.drand.network.DrandHttpApi
 import love.drand.network.data.ChainInfo
@@ -38,35 +37,54 @@ import love.drand.storage.Cache
  * }
  * ```
  *
- * @param api The underlying API implementation (for testing/customization)
- * @param verifier The beacon verification service (for testing/customization)
+ * @param api The underlying API implementation for network transport (default: HTTP)
+ * @param cache Thread-safe cache for storing chain information to reduce network calls
+ * @param verifier Service for cryptographic verification of beacons
  */
 class DrandClient(
     private val api: DrandApi,
     private val cache: Cache<String, ChainInfo> = Cache(),
     private val verifier: BeaconVerificationService = BeaconVerificationService(),
 ) : Closeable {
-    private val chainInfoCache = mutableMapOf<String, ChainInfo>()
-    private val cacheMutex = Mutex()
-
     /**
-     * Creates a client using HTTP transport (default)
+     * Creates a client using HTTP transport with the specified base URL.
+     *
+     * @param baseUrl The base URL of the drand API endpoint (default: https://api.drand.sh)
      */
     constructor(
         baseUrl: String = "https://api.drand.sh",
     ) : this(DrandHttpApi(baseUrl))
 
-    // Direct access to underlying API
+    /**
+     * Direct access to beacon operations (access by beacon ID).
+     *
+     * Provides low-level access to the underlying API for advanced use cases where
+     * you want to fetch beacons without automatic verification. For most use cases,
+     * prefer [getVerifiedBeacon] and [getVerifiedLatestBeacon] which include verification.
+     */
     val beacons: DrandApi.BeaconOperations get() = api.beacons
+
+    /**
+     * Direct access to chain operations (access by chain hash).
+     *
+     * Provides low-level access to the underlying API for advanced use cases where
+     * you want to fetch beacons without automatic verification. For most use cases,
+     * prefer [getVerifiedBeacon] and [getVerifiedLatestBeacon] which include verification.
+     */
     val chains: DrandApi.ChainOperations get() = api.chains
 
     /**
-     * Fetches a given round of randomness for a specific beacon.
+     * Fetches and verifies a specific round of randomness from a drand network.
      *
-     * @param beaconId the beacon identifier
-     * @param round the round number
+     * This method performs the complete verification pipeline:
+     * 1. Fetches chain configuration (cached if available)
+     * 2. Fetches the beacon for the requested round
+     * 3. Verifies the beacon cryptographically
      *
-     * @return The beacon at the given round
+     * @param beaconId The beacon identifier (e.g., "default", "quicknet")
+     * @param round The round number to fetch (must be positive)
+     * @return Result containing the verified [RandomnessBeacon] on success,
+     *         or [DrandError] if fetching or verification fails
      */
     suspend fun getVerifiedBeacon(
         beaconId: String,
@@ -86,10 +104,21 @@ class DrandClient(
     }
 
     /**
-     * Fetches the latest round of randomness for a specific beacon.
+     * Fetches and verifies the latest round of randomness from a drand network.
      *
-     * @param beaconId the beacon identifier
-     * @return The beacon at the latest round
+     * This method performs the complete verification pipeline:
+     * 1. Fetches chain configuration (cached if available)
+     * 2. Fetches the latest beacon
+     * 3. Verifies the beacon cryptographically
+     *
+     * Note: When fetching the "latest" beacon, the expected round is set to the beacon's
+     * own round number. This means round validation passes automatically, but signature
+     * and randomness verification are still performed. This is the standard approach for
+     * latest beacon verification in drand clients.
+     *
+     * @param beaconId The beacon identifier (e.g., "default", "quicknet")
+     * @return Result containing the verified latest [RandomnessBeacon] on success,
+     *         or [DrandError] if fetching or verification fails
      */
     suspend fun getVerifiedLatestBeacon(beaconId: String): Result<RandomnessBeacon> {
         val chainInfo =
@@ -102,16 +131,21 @@ class DrandClient(
                 return Result.failure(it)
             }
 
-        val expectedRound = latestBeacon.round // assuming latest round is expected round, will bypass part of the verification
+        // For latest beacon, use its own round as expected round.
+        // Round validation will pass, but signature and randomness are still verified.
+        val expectedRound = latestBeacon.round
 
         return verifier.verifyBeacon(chainInfo, latestBeacon, expectedRound)
     }
 
     /**
-     * Fetches the chain information, either from the cache or from the network
+     * Fetches chain configuration information, with automatic caching.
      *
-     * @param beaconId the beacon identifier
-     * @return the ChainInfo
+     * Chain information is cached per beacon ID to avoid redundant network calls.
+     * The cache is thread-safe and persists for the lifetime of this client instance.
+     *
+     * @param beaconId The beacon identifier (e.g., "default", "quicknet")
+     * @return Result containing [ChainInfo] on success, or [DrandError] on failure
      */
     suspend fun getChainInfo(beaconId: String): Result<ChainInfo> {
         // Check cache
