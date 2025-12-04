@@ -18,18 +18,18 @@ A Kotlin Multiplatform implementation of the [drand](https://drand.love) client 
 
 ## Supported Platforms
 
-| Platform | Status | Crypto Backend |
-|----------|--------|----------------|
-| **JVM (Java 21+)** | ✅ Fully supported | [jBLST](https://github.com/PegaSysEng/jblst) + BouncyCastle |
-| **JavaScript (Browser)** | ✅ Fully supported | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/hashes](https://github.com/paulmillr/noble-hashes) |
-| Android | 🚧 Planned for 0.2.0 | - |
-| iOS | 🚧 Planned for 0.2.0 | - |
+| Platform | Status                        | Crypto Backend                                                                                                          |
+|----------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| **JVM (Java 21+)** | ✅ Fully supported             | [jBLST (Teku Ethereum Client)](https://github.com/Consensys/teku) + BouncyCastle                                      |
+| **JavaScript (Browser)** | ✅ Fully supported             | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/hashes](https://github.com/paulmillr/noble-hashes) |
+| Android | 🚧 Planned for 0.2.0          | -                                                                                                                       |
+| iOS | 🚧 Planned for future version | -                                                                                                                       |
 
 ## Supported Drand Networks
 
-| Network | Beacon ID | Signing Scheme | Status |
-|---------|-----------|----------------|--------|
-| **League of Entropy (default)** | `default` | `pedersen-bls-chained` (BLS12-381 on G2) | ✅ Fully supported |
+| Network     | Beacon ID | Signing Scheme | Status |
+|-------------|-----------|----------------|--------|
+| **Default** | `default` | `pedersen-bls-chained` (BLS12-381 on G2) | ✅ Fully supported |
 | **Quicknet** | `quicknet` | `bls-unchained-g1-rfc9380` (BLS12-381 on G1) | ✅ Fully supported |
 
 ## Supported Schemes
@@ -44,6 +44,7 @@ A Kotlin Multiplatform implementation of the [drand](https://drand.love) client 
 ## API
 
 **Transport:** HTTP (drand API v2)
+
 **Future:** gRPC support planned
 
 ## Installation
@@ -228,12 +229,12 @@ You may choose either license when using this software.
 ## Acknowledgments
 
 - [drand team](https://drand.love) for building the distributed randomness network
-- [League of Entropy](https://www.cloudflare.com/leagueofentropy/) for operating the default network
+- [League of Entropy](https://www.drand.love/loe) for operating the default network
 - Official clients ([Go](https://github.com/drand/drand), [TypeScript](https://github.com/drand/drand-client)) for test vectors and reference implementations
-- [jBLST](https://github.com/PegaSysEng/jblst) and [@noble/curves](https://github.com/paulmillr/noble-curves) for cryptographic implementations
+- [jBLST](https://github.com/Consensys/teku) and [@noble/curves](https://github.com/paulmillr/noble-curves) for cryptographic implementations
 
 ## Links
 
 - [drand.love](https://drand.love) - Official drand website
 - [drand API documentation](https://drand.love/developer/) - API v2 specification
-- [League of Entropy](https://www.cloudflare.com/leagueofentropy/) - About the drand network
+- [League of Entropy](https://www.drand.love/loe) - About the drand network
