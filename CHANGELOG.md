@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Core Features
 - Initial implementation of drand Kotlin Multiplatform client
-- Full support for JVM (Java 11+) and JavaScript (browser) platforms
+- Full support for JVM (Java 21+) and JavaScript (browser) platforms
 - HTTP transport implementation using Ktor (drand API v2)
 - `DrandClient` class with Result-based API for safe error handling
 - Automatic chain information caching for optimal performance

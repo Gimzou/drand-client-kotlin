@@ -14,7 +14,7 @@ version = "0.1.0"
 kotlin {
     jvm {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()

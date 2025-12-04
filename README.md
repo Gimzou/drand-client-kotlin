@@ -20,7 +20,7 @@ A Kotlin Multiplatform implementation of the [drand](https://drand.love) client 
 
 | Platform | Status | Crypto Backend |
 |----------|--------|----------------|
-| **JVM (Java 11+)** | ✅ Fully supported | [jBLST](https://github.com/PegaSysEng/jblst) + BouncyCastle |
+| **JVM (Java 21+)** | ✅ Fully supported | [jBLST](https://github.com/PegaSysEng/jblst) + BouncyCastle |
 | **JavaScript (Browser)** | ✅ Fully supported | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/hashes](https://github.com/paulmillr/noble-hashes) |
 | Android | 🚧 Planned for 0.2.0 | - |
 | iOS | 🚧 Planned for 0.2.0 | - |
