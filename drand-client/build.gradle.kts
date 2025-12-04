@@ -158,21 +158,4 @@ signing {
     }
 }
 
-// Dokka configuration for API documentation
-tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
-    dokkaSourceSets {
-        configureEach {
-            displayName.set("Drand Client")
-
-            // Link to Kotlin stdlib docs
-            externalDocumentationLink {
-                url.set(uri("https://kotlinlang.org/api/latest/jvm/stdlib/").toURL())
-            }
-
-            // Link to Kotlinx coroutines docs
-            externalDocumentationLink {
-                url.set(uri("https://kotlinlang.org/api/kotlinx.coroutines/").toURL())
-            }
-        }
-    }
-}
+dokka
