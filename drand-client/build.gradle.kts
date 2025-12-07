@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import kotlin.js.ExperimentalJsExport
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -21,15 +22,27 @@ kotlin {
         }
     }
 
-    js {
+    js(IR) {
         browser {
             testTask {
                 useKarma {
                     useChromeHeadless()
+                    useMocha {
+                        timeout = "30000"
+                    }
                 }
             }
+            webpackTask {
+                output.library = "DrandClient"
+                output.libraryTarget = "umd"
+            }
+            binaries.executable()
         }
-        binaries.executable()
+        binaries.library()
+        generateTypeScriptDefinitions()
+        compilerOptions {
+            target = "es2015"
+        }
     }
 
     // Add more targets as needed:
@@ -104,7 +117,7 @@ publishing {
                 description.set(
                     "Kotlin Multiplatform client for the drand distributed randomness network with full BLS signature verification",
                 )
-                url.set("https://github.com/USERNAME/drand-client-kotlin")
+                url.set("https://github.com/Gimzou/drand-client-kotlin")
 
                 licenses {
                     license {
@@ -126,9 +139,9 @@ publishing {
                 }
 
                 scm {
-                    connection.set("scm:git:git://github.com/USERNAME/drand-client-kotlin.git")
-                    developerConnection.set("scm:git:ssh://github.com:USERNAME/drand-client-kotlin.git")
-                    url.set("https://github.com/USERNAME/drand-client-kotlin")
+                    connection.set("scm:git:git://github.com/Gimzou/drand-client-kotlin.git")
+                    developerConnection.set("scm:git:ssh://github.com:Gimzou/drand-client-kotlin.git")
+                    url.set("https://github.com/Gimzou/drand-client-kotlin")
                 }
             }
         }
