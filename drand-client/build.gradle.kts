@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import kotlin.js.ExperimentalJsExport
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
