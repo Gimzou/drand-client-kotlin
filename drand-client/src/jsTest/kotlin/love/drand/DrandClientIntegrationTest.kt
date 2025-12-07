@@ -1,197 +1,113 @@
 package love.drand
 
+import kotlinx.coroutines.await
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
- * Integration tests for DrandClient on JavaScript platform.
- * These tests make real HTTP calls to the drand API.
+ * Integration tests for the JavaScript Client wrapper.
+ * These tests make real HTTP calls to the drand public API.
  */
 class DrandClientIntegrationTest {
-    @Test
-    fun `fetches and verifies real beacon from quicknet network`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
+    private lateinit var client: Client
 
-            try {
-                val result = client.getVerifiedLatestBeacon("quicknet")
+    @BeforeTest
+    fun setup() {
+        client = Client(baseUrl = "https://api.drand.sh")
+    }
 
-                assertTrue(result.isSuccess, "Should successfully fetch and verify quicknet beacon")
-
-                val beacon = result.getOrNull()
-                assertNotNull(beacon, "Beacon should not be null")
-                assertTrue(beacon.round > 0, "Beacon should have positive round number")
-                assertNotNull(beacon.signature, "Beacon should have signature")
-                assertNotNull(beacon.derivedRandomness, "Beacon should have randomness")
-                assertTrue(beacon.signature.isNotEmpty(), "Signature should not be empty")
-                assertTrue(beacon.derivedRandomness.isNotEmpty(), "Randomness should not be empty")
-
-                console.log("✓ Successfully verified quicknet beacon at round ${beacon.round}")
-            } finally {
-                client.close()
-            }
-        }
+    @AfterTest
+    fun teardown() {
+        client.close()
+    }
 
     @Test
-    fun `fetches and verifies real beacon from default network`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
+    fun `fetches and verifies latest beacon from quicknet`() = runTest {
+        val beacon = client.getVerifiedLatestBeacon("quicknet").await()
 
-            try {
-                val result = client.getVerifiedLatestBeacon("default")
+        assertTrue(beacon.round > 0)
+        assertTrue(beacon.signature.isNotEmpty())
+        assertTrue(beacon.randomness.isNotEmpty())
 
-                assertTrue(result.isSuccess, "Should successfully fetch and verify default beacon")
-
-                val beacon = result.getOrNull()
-                assertNotNull(beacon, "Beacon should not be null")
-                assertTrue(beacon.round > 0, "Beacon should have positive round number")
-                assertNotNull(beacon.signature, "Beacon should have signature")
-                assertNotNull(beacon.derivedRandomness, "Beacon should have randomness")
-
-                console.log("✓ Successfully verified default beacon at round ${beacon.round}")
-            } finally {
-                client.close()
-            }
-        }
+        console.log("✓ Verified quicknet beacon at round ${beacon.round}")
+    }
 
     @Test
-    fun `fetches and verifies specific round from quicknet`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
+    fun `fetches and verifies latest beacon from default network`() = runTest {
+        val beacon = client.getVerifiedLatestBeacon("default").await()
 
-            try {
-                // Fetch a known round (round 1000 should exist)
-                val result = client.getVerifiedBeacon("quicknet", 1000)
+        assertTrue(beacon.round > 0)
+        assertTrue(beacon.signature.isNotEmpty())
+        assertTrue(beacon.randomness.isNotEmpty())
 
-                assertTrue(result.isSuccess, "Should successfully fetch and verify specific round")
-
-                val beacon = result.getOrNull()
-                assertNotNull(beacon, "Beacon should not be null")
-                assertEquals(1000L, beacon.round, "Beacon round should match requested round")
-                assertNotNull(beacon.signature, "Beacon should have signature")
-                assertNotNull(beacon.derivedRandomness, "Beacon should have randomness")
-
-                console.log("✓ Successfully verified quicknet beacon round 1000")
-            } finally {
-                client.close()
-            }
-        }
+        console.log("✓ Verified default network beacon at round ${beacon.round}")
+    }
 
     @Test
-    fun `retrieves chain info for quicknet network`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
+    fun `fetches and verifies specific round from quicknet`() = runTest {
+        val targetRound = 1000.0
+        val beacon = client.getVerifiedBeacon("quicknet", targetRound).await()
 
-            try {
-                val result = client.getChainInfo("quicknet")
+        assertEquals(targetRound, beacon.round)
+        assertTrue(beacon.signature.isNotEmpty())
+        assertTrue(beacon.randomness.isNotEmpty())
 
-                assertTrue(result.isSuccess, "Should successfully fetch chain info")
-
-                val chainInfo = result.getOrNull()
-                assertNotNull(chainInfo, "Chain info should not be null")
-                assertNotNull(chainInfo.publicKey, "Should have public key")
-                assertTrue(chainInfo.publicKey.isNotEmpty(), "Public key should not be empty")
-                assertTrue(chainInfo.period > 0, "Period should be positive")
-                assertEquals("bls-unchained-g1-rfc9380", chainInfo.scheme, "Quicknet should use RFC9380 scheme")
-                assertNotNull(chainInfo.chainHash, "Should have chain hash")
-                assertEquals("quicknet", chainInfo.beaconId, "Beacon ID should be quicknet")
-
-                console.log("✓ Retrieved chain info for quicknet (period: ${chainInfo.period}s)")
-            } finally {
-                client.close()
-            }
-        }
+        console.log("✓ Verified quicknet beacon at specific round $targetRound")
+    }
 
     @Test
-    fun `retrieves chain info for default network`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
+    fun `retrieves chain info for quicknet`() = runTest {
+        val chainInfo = client.getChainInfo("quicknet").await()
 
-            try {
-                val result = client.getChainInfo("default")
+        assertTrue(chainInfo.publicKey.isNotEmpty())
+        assertTrue(chainInfo.period > 0)
+        assertEquals("bls-unchained-g1-rfc9380", chainInfo.scheme)
+        assertEquals("quicknet", chainInfo.beaconId)
 
-                assertTrue(result.isSuccess, "Should successfully fetch chain info")
-
-                val chainInfo = result.getOrNull()
-                assertNotNull(chainInfo, "Chain info should not be null")
-                assertNotNull(chainInfo.publicKey, "Should have public key")
-                assertTrue(chainInfo.period > 0, "Period should be positive")
-                assertEquals("pedersen-bls-chained", chainInfo.scheme, "Default should use chained scheme")
-                assertEquals("default", chainInfo.beaconId, "Beacon ID should be default")
-
-                console.log("✓ Retrieved chain info for default (period: ${chainInfo.period}s)")
-            } finally {
-                client.close()
-            }
-        }
+        console.log("✓ Retrieved quicknet chain info (period: ${chainInfo.period}s)")
+    }
 
     @Test
-    fun `chain info is cached on subsequent requests`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
+    fun `retrieves chain info for default network`() = runTest {
+        val chainInfo = client.getChainInfo("default").await()
 
-            try {
-                // First request
-                val result1 = client.getChainInfo("quicknet")
-                assertTrue(result1.isSuccess, "First request should succeed")
-                val chainInfo1 = result1.getOrNull()
-                assertNotNull(chainInfo1)
+        assertTrue(chainInfo.publicKey.isNotEmpty())
+        assertTrue(chainInfo.period > 0)
+        assertEquals("pedersen-bls-chained", chainInfo.scheme)
+        assertEquals("default", chainInfo.beaconId)
 
-                // Second request (should be cached)
-                val result2 = client.getChainInfo("quicknet")
-                assertTrue(result2.isSuccess, "Second request should succeed")
-                val chainInfo2 = result2.getOrNull()
-                assertNotNull(chainInfo2)
-
-                // Should be the same instance or at least equal data
-                assertEquals(chainInfo1.publicKey, chainInfo2.publicKey, "Cached chain info should match")
-                assertEquals(chainInfo1.period, chainInfo2.period, "Cached chain info should match")
-
-                console.log("✓ Chain info caching working correctly")
-            } finally {
-                client.close()
-            }
-        }
+        console.log("✓ Retrieved default network chain info (period: ${chainInfo.period}s)")
+    }
 
     @Test
-    fun `handles non-existent beacon ID gracefully`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
+    fun `returns consistent chain info on repeated requests`() = runTest {
+        val chainInfo1 = client.getChainInfo("quicknet").await()
+        val chainInfo2 = client.getChainInfo("quicknet").await()
 
-            try {
-                val result = client.getVerifiedLatestBeacon("nonexistent-network-id")
+        assertEquals(chainInfo1.publicKey, chainInfo2.publicKey)
+        assertEquals(chainInfo1.period, chainInfo2.period)
+        assertEquals(chainInfo1.scheme, chainInfo2.scheme)
 
-                assertTrue(result.isFailure, "Should fail for non-existent beacon ID")
-
-                val error = result.exceptionOrNull()
-                assertNotNull(error, "Should have an error")
-
-                console.log("✓ Correctly handled non-existent beacon ID with error: ${error.message}")
-            } finally {
-                client.close()
-            }
-        }
+        console.log("✓ Chain info consistency verified")
+    }
 
     @Test
-    fun `handles non-existent round gracefully`() =
-        runTest {
-            val client = DrandClient(baseUrl = "https://api.drand.sh")
-
-            try {
-                // Request a round far in the future that doesn't exist yet
-                val result = client.getVerifiedBeacon("quicknet", 999999999999L)
-
-                assertTrue(result.isFailure, "Should fail for non-existent round")
-
-                val error = result.exceptionOrNull()
-                assertNotNull(error, "Should have an error")
-
-                console.log("✓ Correctly handled non-existent round with error: ${error.message}")
-            } finally {
-                client.close()
-            }
+    fun `throws error for non-existent beacon ID`() = runTest {
+        val exception = assertFailsWith<Throwable> {
+            client.getVerifiedLatestBeacon("nonexistent-network-xyz").await()
         }
+
+        assertNotNull(exception.message)
+        console.log("✓ Correctly rejected invalid beacon ID: ${exception.message}")
+    }
+
+    @Test
+    fun `throws error for non-existent round`() = runTest {
+        val exception = assertFailsWith<Throwable> {
+            client.getVerifiedBeacon("quicknet", 999999999999.0).await()
+        }
+
+        assertNotNull(exception.message)
+        console.log("✓ Correctly rejected invalid round: ${exception.message}")
+    }
 }
