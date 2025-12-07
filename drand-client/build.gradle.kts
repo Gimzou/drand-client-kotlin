@@ -22,6 +22,8 @@ kotlin {
     }
 
     js(IR) {
+        outputModuleName = "drand-client"
+
         browser {
             testTask {
                 useKarma {
@@ -31,11 +33,11 @@ kotlin {
                     }
                 }
             }
-            webpackTask {
-                output.library = "DrandClient"
-                output.libraryTarget = "umd"
+        }
+        nodejs {
+            testTask {
+                useMocha { timeout = "30000" }
             }
-            binaries.executable()
         }
         binaries.library()
         generateTypeScriptDefinitions()

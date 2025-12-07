@@ -1,24 +1,24 @@
 # Drand Client - JavaScript Examples
 
-This directory contains examples for using the drand-client-kotlin library in JavaScript environments (both browser and Node.js).
+This directory contains examples for using the drand-client library in JavaScript environments (both browser and Node.js).
+
+Both examples use the **actual library output** that will be published to npm, ensuring the demos match real-world usage.
 
 ## Building the Library
 
 Before running the examples, build the JavaScript library:
-
 ```bash
 # From the project root
-./gradlew :drand-client:jsBrowserProductionWebpack
+./gradlew jsProductionLibraryDistribution
 ```
 
-This creates a UMD bundle at:
+This creates an ES module library at:
 ```
-drand-client/build/kotlin-webpack/js/productionExecutable/drand-client.js
+drand-client/build/js/packages/drand-client/kotlin/drand-client.mjs
 ```
+
 
 ## Browser Examples
-
-### Simple Example (`index.html`)
 
 An example with styled UI showing:
 - Latest beacon fetching
@@ -26,10 +26,32 @@ An example with styled UI showing:
 - Chain information retrieval
 - Error handling
 
+### Running the example (`index.html`)
+
+The browser example requires a web server (ES modules don't work with `file://` protocol):
 ```bash
-# Open in browser
-open example/index.html
+# Start a local server (choose one):
+cd example && python3 -m http.server 8000
+cd example && npx http-server -p 8000
+
+# Open: http://localhost:8000/index.html
 ```
+
+### Import Map Requirement
+
+The browser example uses an **import map** to resolve npm dependencies (`@noble/hashes`, `@noble/curves`) from a CDN:
+```html
+
+{
+    "imports": {
+        "@noble/hashes/": "https://esm.sh/@noble/hashes@2.0.1/",
+        "@noble/curves/": "https://esm.sh/@noble/curves@2.0.1/"
+    }
+}
+
+```
+
+**Note:** Import maps are supported in all modern browsers (Chrome 89+, Firefox 108+, Safari 16.4+). When using this library with a bundler (Vite, webpack, Rollup), the import map is not needed - the bundler handles npm dependencies automatically.
 
 ## Node.js Example
 
@@ -37,26 +59,29 @@ Run the Node.js example (requires Node.js 14+):
 
 ```bash
 # From project root, after building
-node example/node-example.mjs
+node example/javascript/node-example.mjs
 ```
+
+### Requirements
+
+- Node.js 18+ (for native ES modules support)
+- The `.mjs` extension automatically signals ES module to Node.js
 
 ## API Reference
 
 ### Creating a Client
 
 ```javascript
-// Browser (after loading the script tag)
-const { Client } = window.DrandClient;
+// ES Module import (works in both browser and Node.js)
+import { Client } from 'drand-client';  // After npm install
+
+// Or in these examples (using local build):
+import { Client } from '../drand-client/build/js/packages/drand-client/kotlin/drand-client.mjs';
+
 const client = new Client(); // Uses https://api.drand.sh by default
 
 // Or with custom endpoint
-const client = new Client("https://api.drand.sh");
-```
-
-```javascript
-// Node.js (ES modules)
-import { Client } from '../path/to/drand-client.js';
-const client = new Client();
+const client = new Client('https://custom-drand-endpoint.com');
 ```
 
 ### Available Methods

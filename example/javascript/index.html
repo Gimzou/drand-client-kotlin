@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drand Client - Minimal Example</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "@noble/hashes/": "https://esm.sh/@noble/hashes@2.0.1/",
+                "@noble/curves/": "https://esm.sh/@noble/curves@2.0.1/"
+            }
+        }
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -106,29 +114,21 @@
     </div>
 </div>
 
-<!-- Your compiled Kotlin/JS module (UMD bundle from webpack) -->
-<script src="../../drand-client/build/kotlin-webpack/js/productionExecutable/drand-client.js"></script>
+<!-- Import from library output (real-world usage) -->
+<script type="module">
+    import { Client } from '../../build/js/packages/drand-client/kotlin/drand-client.mjs';
 
-<script>
+    console.log('✓ Client imported successfully:', Client);
+
     let client = null;
+    let currentNetwork = null;
     const statusEl = document.getElementById('status');
     const resultEl = document.getElementById('result');
 
     // Initialize client
     async function init() {
         try {
-            // Debug: Log what's available
-            console.log('Available exports:', Object.keys(window.DrandClient || {}));
-
-            // Access the exported DrandClientJs class
-            const { Client } = window.DrandClient;
-
-            if (!Client) {
-                throw new Error('Client not found. Available exports: ' + Object.keys(window.DrandClient).join(', '));
-            }
-
-            // Create client instance (uses default endpoint)
-            client = new Client();
+            client = new Client('https://api.drand.sh');
 
             statusEl.className = 'status ready';
             statusEl.textContent = '✓ Ready to fetch beacons';
@@ -157,10 +157,12 @@
 
 Network:    ${network}
 Round:      ${beacon.round}
+Randomness: ${beacon.randomness.substring(0, 40)}...
 Signature:  ${beacon.signature.substring(0, 40)}...
 
 ✓ Cryptographic signature verified!
             `.trim();
+            currentNetwork = network;
             showResult(output, 'success');
         } catch (error) {
             showResult('Error: ' + error.message, 'error');
@@ -175,11 +177,15 @@ Signature:  ${beacon.signature.substring(0, 40)}...
             return;
         }
 
+        if (!currentNetwork) {
+            showResult('No network selected! Fetch a beacon first', 'error');
+            return;
+        }
+
         showLoading();
 
         try {
-            // Returns Promise<ChainInfo> directly
-            const info = await client.getChainInfo('quicknet');
+            const info = await client.getChainInfo(currentNetwork);
 
             const output = `
 ℹ️ Chain Information
@@ -204,6 +210,10 @@ Genesis Time: ${new Date(info.genesisTime * 1000).toLocaleString()}
         resultEl.className = 'result ' + type;
         resultEl.textContent = message;
     }
+
+    // Make functions available globally for onclick handlers
+    window.test = test;
+    window.testChainInfo = testChainInfo;
 
     // Initialize when page loads
     window.addEventListener('load', init);
