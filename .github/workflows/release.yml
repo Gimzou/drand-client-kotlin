@@ -118,7 +118,7 @@ jobs:
             }
 
             dependencies {
-                implementation("com.github.USERNAME:drand-client-kotlin:${{ steps.get_version.outputs.VERSION }}")
+                implementation("com.github.Gimzou:drand-client-kotlin:${{ steps.get_version.outputs.VERSION }}")
             }
             ```
 

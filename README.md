@@ -10,27 +10,29 @@ A Kotlin Multiplatform implementation of the [drand](https://drand.love) client 
 ## Features
 
 - ✅ **Full BLS12-381 signature verification** for drand beacons
-- ✅ **Support for drand networks**: `default` (League of Entropy) and `quicknet`
-- ✅ **Multiplatform**: JVM (Java 11+) and JavaScript (browser)
+- ✅ **Support for drand networks**: `default` and `quicknet`
+- ✅ **Multiplatform**: JVM (Java 21+) and JavaScript (browser, nodejs)
 - ✅ **Type-safe Result API** - no unchecked exceptions
 - ✅ **Automatic chain info caching** for optimal performance
 - ✅ **Comprehensive test coverage** with official test vectors from Go and TypeScript implementations
 
 ## Supported Platforms
 
-| Platform | Status                        | Crypto Backend                                                                                                          |
-|----------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| **JVM (Java 21+)** | ✅ Fully supported             | [jBLST (Teku Ethereum Client)](https://github.com/Consensys/teku) + BouncyCastle                                      |
+| Platform                 | Status                        | Crypto Backend                                                                                                          |
+|--------------------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| **JVM (Java 21+)**       | ✅ Fully supported             | [jBLST (Teku Ethereum Client)](https://github.com/Consensys/teku) + BouncyCastle                                      |
 | **JavaScript (Browser)** | ✅ Fully supported             | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/hashes](https://github.com/paulmillr/noble-hashes) |
-| Android | 🚧 Planned for 0.2.0          | -                                                                                                                       |
-| iOS | 🚧 Planned for future version | -                                                                                                                       |
+| WebAssembly              | 🚧 Planned for future version | -                                                                                                                       |
+| Android                  | 🚧 Planned for 0.2.0          | -                                                                                                                       |
+| iOS                      | 🚧 Planned for future version | -                                                                                                                       |
 
 ## Supported Drand Networks
 
-| Network     | Beacon ID | Signing Scheme | Status |
-|-------------|-----------|----------------|--------|
-| **Default** | `default` | `pedersen-bls-chained` (BLS12-381 on G2) | ✅ Fully supported |
+| Network      | Beacon ID  | Signing Scheme                               | Status |
+|--------------|------------|----------------------------------------------|--------|
+| **Default**  | `default`  | `pedersen-bls-chained` (BLS12-381 on G2)     | ✅ Fully supported |
 | **Quicknet** | `quicknet` | `bls-unchained-g1-rfc9380` (BLS12-381 on G1) | ✅ Fully supported |
+| Evmnet       | `evmnet`   | `bls-bn254-unchained-on-g1` (BN254 on G1)    | 🚧 Planned for future version |
 
 ## Supported Schemes
 
@@ -76,8 +78,6 @@ dependencies {
 ### Basic Example
 
 ```kotlin
-import love.drand.DrandClient
-
 fun main() {
     // Create a client (uses https://api.drand.sh by default)
     DrandClient().use { client ->
@@ -145,9 +145,9 @@ when {
 
 ```javascript
 // In your browser or Node.js application
-import { DrandClient } from 'drand-client-kotlin';
+import { Client } from 'drand-client';
 
-const client = new DrandClient();
+const client = new Client();
 
 // Async/await style
 const result = await client.getVerifiedLatestBeacon("quicknet");
@@ -199,11 +199,12 @@ This project uses ktlint for code formatting:
 ## Roadmap
 
 ### 0.2.0
-- Android and iOS platform support
+- Android platform support
 - gRPC transport
 - Streaming API for watching new beacons
 
 ### Future
+- iOS, WASM platform support
 - BN254 curve support for EVM compatibility
 - Local beacon caching
 - Batch verification
