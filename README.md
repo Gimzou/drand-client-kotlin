@@ -61,7 +61,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.USERNAME:drand-client-kotlin:0.1.0")
+    implementation("com.github.gimzou:drand-client-kotlin:0.1.0")
 }
 ```
 

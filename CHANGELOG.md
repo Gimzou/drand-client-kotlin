@@ -99,4 +99,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This is the initial public release targeting feedback from the drand and Kotlin Multiplatform communities. The implementation focuses on solid foundations with full cryptographic verification and comprehensive testing.
 
-[0.1.0]: https://github.com/USERNAME/drand-client-kotlin/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Gimzou/drand-client-kotlin/releases/tag/v0.1.0
