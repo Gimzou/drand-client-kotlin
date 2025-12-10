@@ -5,7 +5,7 @@ Command-line example showing verified randomness in Node.js environments.
 ## Quick Start
 ```bash
 # From project root
-./gradlew jsProductionLibraryDistribution
+./gradlew jsNodeProductionLibraryDistribution
 node examples/nodejs/node-example.mjs
 ```
 
@@ -107,7 +107,7 @@ Perfect for:
 ## Troubleshooting
 
 **"Cannot find module"**
-→ Run `./gradlew jsProductionLibraryDistribution` first
+→ Run `./gradlew jsNodeProductionLibraryDistribution` first
 
 **"fetch is not defined"** (Node.js < 18)
 → Upgrade to Node.js 18+ or install `node-fetch`

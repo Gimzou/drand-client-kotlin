@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drand Client - Minimal Example</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "@noble/hashes/": "https://esm.sh/@noble/hashes@2.0.1/",
+                "@noble/curves/": "https://esm.sh/@noble/curves@2.0.1/"
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .content { padding: 30px; }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover { background: #5568d3; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result.error { border-color: #dc3545; background: #fff5f5; }
+        .result.success { border-color: #28a745; background: #f0fff4; }
+        .loading { text-align: center; color: #666; padding: 20px; }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status {
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .status.ready { background: #d1e7dd; color: #0f5132; }
+        .status.error { background: #f8d7da; color: #842029; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h1>🎲 Drand Randomness</h1>
+        <p>Verifiable randomness beacons</p>
+    </div>
+    <div class="content">
+        <div id="status" class="status">Initializing...</div>
+
+        <button onclick="test('quicknet')" id="btn-quicknet">
+            Fetch Quicknet Beacon
+        </button>
+        <button onclick="test('default')" id="btn-default">
+            Fetch Default Network Beacon
+        </button>
+        <button onclick="testChainInfo()" id="btn-info">
+            Show Chain Information
+        </button>
+
+        <div id="result"></div>
+    </div>
+</div>
+
+<!-- Import from library output (real-world usage) -->
+<script type="module">
+    import { Client } from './drand-client/kotlin/drand-client.mjs';
+
+    console.log('✓ Client imported successfully:', Client);
+
+    let client = null;
+    let currentNetwork = null;
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+
+    // Initialize client
+    async function init() {
+        try {
+            client = new Client('https://api.drand.sh');
+
+            statusEl.className = 'status ready';
+            statusEl.textContent = '✓ Ready to fetch beacons';
+            console.log('Client initialized successfully');
+        } catch (error) {
+            statusEl.className = 'status error';
+            statusEl.textContent = '✗ Initialization failed: ' + error.message;
+            console.error('Init error:', error);
+        }
+    }
+
+    // Test fetching a beacon
+    async function test(network) {
+        if (!client) {
+            showResult('Client not initialized!', 'error');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const beacon = await client.getVerifiedLatestBeacon(network);
+
+            const output = `
+🎯 Beacon Fetched Successfully!
+
+Network:    ${network}
+Round:      ${beacon.round}
+Randomness: ${beacon.randomness.substring(0, 40)}...
+Signature:  ${beacon.signature.substring(0, 40)}...
+
+✓ Cryptographic signature verified!
+            `.trim();
+            currentNetwork = network;
+            showResult(output, 'success');
+        } catch (error) {
+            showResult('Error: ' + error.message, 'error');
+            console.error('Request error:', error);
+        }
+    }
+
+    // Test chain info
+    async function testChainInfo() {
+        if (!client) {
+            showResult('Client not initialized!', 'error');
+            return;
+        }
+
+        if (!currentNetwork) {
+            showResult('No network selected! Fetch a beacon first', 'error');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const info = await client.getChainInfo(currentNetwork);
+
+            const output = `
+ℹ️ Chain Information
+
+Public Key:   ${info.publicKey.substring(0, 50)}...
+Period:       ${info.period} seconds
+Scheme:       ${info.scheme}
+Genesis Time: ${new Date(info.genesisTime * 1000).toLocaleString()}
+            `.trim();
+            showResult(output, 'success');
+        } catch (error) {
+            showResult('Error: ' + error.message, 'error');
+        }
+    }
+
+    function showLoading() {
+        resultEl.className = 'result';
+        resultEl.innerHTML = '<div class="loading"><div class="spinner"></div>Fetching from drand network...</div>';
+    }
+
+    function showResult(message, type = '') {
+        resultEl.className = 'result ' + type;
+        resultEl.textContent = message;
+    }
+
+    // Make functions available globally for onclick handlers
+    window.test = test;
+    window.testChainInfo = testChainInfo;
+
+    // Initialize when page loads
+    window.addEventListener('load', init);
+</script>
+</body>
+</html>

@@ -18,13 +18,13 @@ A Kotlin Multiplatform implementation of the [drand](https://drand.love) client 
 
 ## Supported Platforms
 
-| Platform                 | Status                        | Crypto Backend                                                                                                          |
-|--------------------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| **JVM (Java 21+)**       | ✅ Fully supported             | [jBLST (Teku Ethereum Client)](https://github.com/Consensys/teku) + BouncyCastle                                      |
-| **JavaScript (Browser)** | ✅ Fully supported             | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/hashes](https://github.com/paulmillr/noble-hashes) |
-| WebAssembly              | 🚧 Planned for future version | -                                                                                                                       |
-| Android                  | 🚧 Planned for 0.2.0          | -                                                                                                                       |
-| iOS                      | 🚧 Planned for future version | -                                                                                                                       |
+| Platform                         | Status                        | Crypto Backend                                                                                                          |
+|----------------------------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| **JVM (Java 21+)**               | ✅ Fully supported             | [jBLST (Teku Ethereum Client)](https://github.com/Consensys/teku) + BouncyCastle                                      |
+| **JavaScript (Browser, Nodejs)** | ✅ Fully supported             | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/hashes](https://github.com/paulmillr/noble-hashes) |
+| WebAssembly                      | 🚧 Planned for future version | -                                                                                                                       |
+| Android                          | 🚧 Planned for 0.2.0          | -                                                                                                                       |
+| iOS                              | 🚧 Planned for future version | -                                                                                                                       |
 
 ## Supported Drand Networks
 

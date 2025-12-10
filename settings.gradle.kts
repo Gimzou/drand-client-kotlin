@@ -24,3 +24,4 @@ plugins {
 }
 
 include(":drand-client")
+include(":examples:jvm")

@@ -20,7 +20,7 @@ Interactive demo showing cryptographically verified randomness in the browser.
 ## Quick Start
 ```bash
 # From project root
-./gradlew jsProductionLibraryDistribution
+./gradlew jsBrowserProductionLibraryDistribution
 
 # Serve with any static server
 python3 -m http.server 8000
