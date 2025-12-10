@@ -1,5 +1,7 @@
 # Kotlin Multiplatform Client for the Drand Network
 
+[![CI](https://github.com/Gimzou/drand-client-kotlin/actions/workflows/ci.yml/badge.svg)](https://github.com/Gimzou/drand-client-kotlin/actions/workflows/ci.yml)
+[![API Docs](https://github.com/Gimzou/drand-client-kotlin/actions/workflows/docs.yml/badge.svg)](https://gimzou.github.io/drand-client-kotlin/)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.2.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0%20%2F%20MIT-blue.svg)](LICENSE-APACHE)
 

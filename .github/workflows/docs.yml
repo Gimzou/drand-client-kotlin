@@ -34,7 +34,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Generate Dokka documentation
-        run: ./gradlew dokkaHtml --no-daemon --stacktrace
+        run: ./gradlew dokkaGeneratePublicationHtml --no-daemon --stacktrace
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
