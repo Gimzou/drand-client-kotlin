@@ -1,7 +1,6 @@
 # Gradle build outputs
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -16,6 +15,9 @@ build/
 *.tar.gz
 *.tar
 META-INF/MANIFEST.MF
+
+# BUT allow the Gradle wrapper JAR (exception must come after the *.jar rule)
+!gradle/wrapper/gradle-wrapper.jar
 
 # Ignore test reports and logs
 test-results/
