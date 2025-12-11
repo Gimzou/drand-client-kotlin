@@ -140,7 +140,7 @@ jobs:
   
             ## Documentation
             - [📚 API Documentation](https://gimzou.github.io/drand-client-kotlin/api/)
-              - [🎮 Live Demo](https://gimzou.github.io/drand-client-kotlin/demo/)
+              - [🎮 Live Demo](https://gimzou.github.io/drand-client-kotlin/)
               - [📖 README](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.VERSION }}/README.md)
               - [📝 Changelog](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.VERSION }}/CHANGELOG.md)
   

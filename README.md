@@ -1,7 +1,7 @@
 # Kotlin Multiplatform Client for the Drand Network
 
 [![CI](https://github.com/Gimzou/drand-client-kotlin/actions/workflows/ci.yml/badge.svg)](https://github.com/Gimzou/drand-client-kotlin/actions/workflows/ci.yml)
-[![API Docs](https://github.com/Gimzou/drand-client-kotlin/actions/workflows/docs.yml/badge.svg)](https://gimzou.github.io/drand-client-kotlin/)
+[![API Docs](https://github.com/Gimzou/drand-client-kotlin/actions/workflows/docs.yml/badge.svg)](https://gimzou.github.io/drand-client-kotlin/api)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.2.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0%20%2F%20MIT-blue.svg)](LICENSE-APACHE)
 
@@ -77,7 +77,9 @@ dependencies {
 
 ## Usage
 
-### Basic Example
+### JVM Example
+
+#### Basic Example
 
 ```kotlin
 fun main() {
@@ -99,7 +101,7 @@ fun main() {
 }
 ```
 
-### Get Specific Round
+#### Get Specific Round
 
 ```kotlin
 val client = DrandClient()
@@ -111,7 +113,7 @@ val beacon = client.getVerifiedBeacon("quicknet", 1000)
 println("Round ${beacon.round} randomness: ${beacon.derivedRandomness}")
 ```
 
-### Get Chain Information
+#### Get Chain Information
 
 ```kotlin
 val client = DrandClient()
@@ -124,7 +126,7 @@ println("Period: ${chainInfo.period}s")
 println("Scheme: ${chainInfo.scheme}")
 ```
 
-### Error Handling
+#### Error Handling
 
 The library uses Kotlin's `Result` type for safe error handling:
 
@@ -202,10 +204,10 @@ This project uses ktlint for code formatting:
 
 ### 0.2.0
 - Android platform support
-- gRPC transport
 - Streaming API for watching new beacons
 
 ### Future
+- gRPC transport
 - iOS, WASM platform support
 - BN254 curve support for EVM compatibility
 - Local beacon caching
