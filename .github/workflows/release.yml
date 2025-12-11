@@ -27,10 +27,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run all tests
+      - name: Run tests
         run: ./gradlew test --no-daemon --stacktrace
 
-      - name: Run ktlint check
+      - name: Run ktlint
         run: ./gradlew ktlintCheck --no-daemon --stacktrace
 
   build-artifacts:
@@ -52,16 +52,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build artifacts
+      - name: Build all artifacts
         run: ./gradlew build --no-daemon --stacktrace
 
-      - name: Generate Dokka documentation
-        run: ./gradlew dokkaHtml --no-daemon --stacktrace
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Create documentation archive
+      - name: Package JavaScript artifacts
         run: |
-          cd drand-client/build/dokka/html
-          zip -r ../../../../api-docs.zip .
+          cd build/js/packages/drand-client
+          tar -czf ../../../../drand-client-js-${{ steps.get_version.outputs.VERSION }}.tar.gz .
           cd ../../../..
 
       - name: Upload build artifacts
@@ -70,7 +71,8 @@ jobs:
           name: build-artifacts
           path: |
             drand-client/build/libs/*.jar
-            api-docs.zip
+            drand-client-js-*.tar.gz
+          retention-days: 90
 
   create-release:
     name: Create GitHub Release
@@ -85,6 +87,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
+          path: artifacts
 
       - name: Extract version from tag
         id: get_version
@@ -94,7 +97,6 @@ jobs:
         id: changelog
         run: |
           VERSION=${{ steps.get_version.outputs.VERSION }}
-          # Extract the changelog section for this version
           CHANGELOG=$(awk "/## \[$VERSION\]/,/## \[/{if (/## \[/ && NR!=1) exit; print}" CHANGELOG.md)
           echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
@@ -105,66 +107,51 @@ jobs:
         with:
           name: Release v${{ steps.get_version.outputs.VERSION }}
           body: |
-            # Drand Kotlin Client v${{ steps.get_version.outputs.VERSION }}
-
-            ${{ steps.changelog.outputs.CHANGELOG }}
-
-            ## Installation
-
-            ### JitPack
-            ```kotlin
-            repositories {
-                maven("https://jitpack.io")
-            }
-
-            dependencies {
-                implementation("com.github.Gimzou:drand-client-kotlin:${{ steps.get_version.outputs.VERSION }}")
-            }
-            ```
-
+              # Drand Kotlin Client v${{ steps.get_version.outputs.VERSION }}
+  
+              ${{ steps.changelog.outputs.CHANGELOG }}
+  
+              ## Installation
+  
+              ### JVM (Gradle/Maven via JitPack)
+              ```kotlin
+              repositories {
+              maven("https://jitpack.io")
+              }
+            
+              dependencies {
+              implementation("com.github.Gimzou:drand-client-kotlin:${{ steps.get_version.outputs.VERSION }}")
+              }
+              ```
+  
+            ### JavaScript (Browser/Node.js)
+            Download `drand-client-js-${{ steps.get_version.outputs.VERSION }}.tar.gz` and install:
+              ```bash
+              tar -xzf drand-client-js-${{ steps.get_version.outputs.VERSION }}.tar.gz
+              npm install ./drand-client
+              ```
+  
+            Or use directly in browser:
+              ```html
+              <script type="module">
+              import { DrandClient } from './drand-client/kotlin/drand-client.mjs';
+              </script>
+              ```
+  
             ## Documentation
-            - [API Documentation](https://github.com/${{ github.repository }}/releases/download/v${{ steps.get_version.outputs.VERSION }}/api-docs.zip)
-            - [README](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.VERSION }}/README.md)
+            - [📚 API Documentation](https://gimzou.github.io/drand-client-kotlin/api/)
+              - [🎮 Live Demo](https://gimzou.github.io/drand-client-kotlin/demo/)
+              - [📖 README](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.VERSION }}/README.md)
+              - [📝 Changelog](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.VERSION }}/CHANGELOG.md)
+  
+            ## Downloads
+            This release includes:
+              - **JVM artifacts** (`.jar` files) for direct use or inspection
+              - **JavaScript artifacts** (`.tar.gz`) for npm installation
+  
+            _Note: JVM users should prefer JitPack for automatic dependency management._
           files: |
-            drand-client/build/libs/*.jar
-            api-docs.zip
+            artifacts/*.jar
+            artifacts/*.tar.gz
           draft: false
           prerelease: false
-
-  # Uncomment when Maven Central is set up
-  # publish-maven-central:
-  #   name: Publish to Maven Central
-  #   runs-on: ubuntu-latest
-  #   needs: validate
-  #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-  #
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Set up JDK 11
-  #       uses: actions/setup-java@v4
-  #       with:
-  #         java-version: '11'
-  #         distribution: 'temurin'
-  #         cache: 'gradle'
-  #
-  #     - name: Grant execute permission for gradlew
-  #       run: chmod +x gradlew
-  #
-  #     - name: Publish to Maven Central
-  #       env:
-  #         OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-  #         OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-  #         SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-  #         SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-  #         SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-  #       run: |
-  #         echo "$SIGNING_KEY" | base64 -d > $HOME/signing.gpg
-  #         ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository \
-  #           -Psigning.keyId=$SIGNING_KEY_ID \
-  #           -Psigning.password=$SIGNING_PASSWORD \
-  #           -Psigning.secretKeyRingFile=$HOME/signing.gpg \
-  #           -PossrhUsername=$OSSRH_USERNAME \
-  #           -PossrhPassword=$OSSRH_PASSWORD \
-  #           --no-daemon --stacktrace
