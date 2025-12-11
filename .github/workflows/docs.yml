@@ -19,6 +19,8 @@ jobs:
   deploy-docs:
     name: Build and Deploy API Documentation
     runs-on: ubuntu-latest
+    # Only deploy for stable releases (not alpha/beta/rc)
+    if: "!contains(github.ref, '-')"
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
