@@ -6,6 +6,7 @@ build/
 
 # Kotlin build cache
 .kotlin/
+kotlin-js-store/
 
 # Do NOT track any JARs, WARs, ZIPs, or manifests, regardless of location
 *.jar
