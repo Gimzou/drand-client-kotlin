@@ -107,22 +107,22 @@ jobs:
         with:
           name: Release v${{ steps.get_version.outputs.VERSION }}
           body: |
-              # Drand Kotlin Client v${{ steps.get_version.outputs.VERSION }}
-  
-              ${{ steps.changelog.outputs.CHANGELOG }}
-  
-              ## Installation
-  
-              ### JVM (Gradle/Maven via JitPack)
-              ```kotlin
-              repositories {
-              maven("https://jitpack.io")
-              }
-            
-              dependencies {
-              implementation("com.github.Gimzou:drand-client-kotlin:${{ steps.get_version.outputs.VERSION }}")
-              }
-              ```
+            # Drand Kotlin Client v${{ steps.get_version.outputs.VERSION }}
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ## Installation
+
+            ### JVM (Gradle/Maven via JitPack)
+            ```kotlin
+            repositories {
+            maven("https://jitpack.io")
+            }
+          
+            dependencies {
+            implementation("com.github.Gimzou:drand-client-kotlin:${{ steps.get_version.outputs.VERSION }}")
+            }
+            ```
   
             ### JavaScript (Browser/Node.js)
             Download `drand-client-js-${{ steps.get_version.outputs.VERSION }}.tar.gz` and install:
