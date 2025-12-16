@@ -4,4 +4,6 @@ before_install:
   - sdk install java 21.0.1-open || true
   - sdk use java 21.0.1-open
 install:
-  - ./gradlew clean build publishToMavenLocal -x test
+  # Build only JVM target for JitPack
+  # JS artifacts are distributed via npm and GitHub Releases
+  - ./gradlew clean :drand-client:jvmJar :drand-client:publishToMavenLocal -x test -x jsCompile -x jsBrowserTest -x jsNodeTest
