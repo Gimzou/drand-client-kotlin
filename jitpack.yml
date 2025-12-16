@@ -6,4 +6,4 @@ before_install:
 install:
   # Build only JVM target for JitPack
   # JS artifacts are distributed via npm and GitHub Releases
-  - ./gradlew clean :drand-client:jvmJar :drand-client:publishToMavenLocal -x test -x jsCompile -x jsBrowserTest -x jsNodeTest
+  - ./gradlew clean :drand-client:publishJvmPublicationToMavenLocal -x test
