@@ -10,9 +10,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url = uri("https://artifacts.consensys.net/public/maven/maven/")
-        }
+        // Required for jblst (BLS cryptography library used by Teku)
+        maven("https://artifacts.consensys.net/public/maven/maven/")
     }
 }
 

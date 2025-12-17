@@ -60,6 +60,8 @@ Add the JitPack repository to your `build.gradle.kts`:
 ```kotlin
 repositories {
     maven("https://jitpack.io")
+    // Required for jblst (BLS cryptography library used by Teku)
+    maven("https://artifacts.consensys.net/public/maven/maven/")
 }
 
 dependencies {
