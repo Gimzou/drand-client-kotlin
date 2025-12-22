@@ -26,7 +26,20 @@ import love.drand.network.data.RandomnessBeacon
  */
 private const val CLIENT_VERSION = "0.1.0"
 
-private fun createDefaultHttpClient() =
+/**
+ * Configuration for HTTP transport timeouts.
+ *
+ * @param requestTimeoutMs Maximum time for the entire request (default: 30 seconds)
+ * @param connectTimeoutMs Maximum time to establish connection (default: 10 seconds)
+ * @param socketTimeoutMs Maximum time between TCP packets (default: 10 seconds)
+ */
+data class HttpConfig(
+    val requestTimeoutMs: Long = 30_000,
+    val connectTimeoutMs: Long = 10_000,
+    val socketTimeoutMs: Long = 10_000,
+)
+
+private fun createDefaultHttpClient(config: HttpConfig) =
     HttpClient {
         expectSuccess = true
 
@@ -43,9 +56,9 @@ private fun createDefaultHttpClient() =
             )
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 30_000 // 30 seconds total
-            connectTimeoutMillis = 10_000 // 10 seconds to connect
-            socketTimeoutMillis = 10_000 // 10 seconds to read
+            requestTimeoutMillis = config.requestTimeoutMs
+            connectTimeoutMillis = config.connectTimeoutMs
+            socketTimeoutMillis = config.socketTimeoutMs
         }
     }
 
@@ -63,11 +76,13 @@ private fun createDefaultHttpClient() =
  * ```
  *
  * @param baseUrl Base URL for the drand API (default: https://api.drand.sh)
+ * @param config HTTP timeout configuration (optional, uses defaults if not specified)
  * @param httpClient Custom HttpClient instance (optional, for testing/customization)
  */
 class DrandHttpApi(
     private val baseUrl: String = "https://api.drand.sh",
-    private val httpClient: HttpClient = createDefaultHttpClient(),
+    config: HttpConfig = HttpConfig(),
+    private val httpClient: HttpClient = createDefaultHttpClient(config),
 ) : DrandApi {
     override val beacons =
         object : DrandApi.BeaconOperations {

@@ -7,17 +7,17 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class CacheTest {
+class SimpleCacheTest {
     @Test
     fun `get returns null for missing entry`() {
-        val cache = Cache<String, String>()
+        val cache = SimpleCache<String, String>()
         assertNull(cache.get("nonexistent"))
     }
 
     @Test
     fun `put and get work correctly`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             cache.put("key", "value")
 
@@ -27,7 +27,7 @@ class CacheTest {
     @Test
     fun `contains returns correct values`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             assertFalse(cache.contains("key"))
 
@@ -39,7 +39,7 @@ class CacheTest {
     @Test
     fun `clear removes all entries`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             cache.put("key1", "value1")
             cache.put("key2", "value2")
@@ -55,7 +55,7 @@ class CacheTest {
     @Test
     fun `remove deletes specific entry`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             cache.put("key1", "value1")
             cache.put("key2", "value2")
@@ -70,7 +70,7 @@ class CacheTest {
     @Test
     fun `size returns correct count`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             assertEquals(0, cache.size())
 
@@ -87,7 +87,7 @@ class CacheTest {
     @Test
     fun `keys returns all cached keys`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             cache.put("key1", "value1")
             cache.put("key2", "value2")
@@ -102,7 +102,7 @@ class CacheTest {
     @Test
     fun `getOrPut returns existing value`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             cache.put("key", "existing")
 
@@ -120,7 +120,7 @@ class CacheTest {
     @Test
     fun `getOrPut computes and caches missing value`() =
         runTest {
-            val cache = Cache<String, String>()
+            val cache = SimpleCache<String, String>()
 
             val value =
                 cache.getOrPut("key") {
@@ -134,7 +134,7 @@ class CacheTest {
     @Test
     fun `values returns all cached values`() =
         runTest {
-            val cache = Cache<String, Int>()
+            val cache = SimpleCache<String, Int>()
 
             cache.put("a", 1)
             cache.put("b", 2)
