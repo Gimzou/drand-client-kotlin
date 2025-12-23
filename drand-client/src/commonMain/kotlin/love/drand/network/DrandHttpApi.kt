@@ -27,6 +27,27 @@ import love.drand.network.data.RandomnessBeacon
 private const val CLIENT_VERSION = "0.1.0"
 
 /**
+ * Validates an HTTP base URL for the drand API.
+ *
+ * @throws IllegalArgumentException if the URL is invalid for HTTP transport
+ */
+private fun validateHttpBaseUrl(baseUrl: String): String {
+    require(baseUrl.isNotBlank()) {
+        "Base URL cannot be blank"
+    }
+
+    require(baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
+        "Base URL must start with http:// or https://, got: $baseUrl"
+    }
+
+    require(!baseUrl.endsWith("/")) {
+        "Base URL should not end with a trailing slash, got: $baseUrl"
+    }
+
+    return baseUrl
+}
+
+/**
  * Configuration for HTTP transport timeouts.
  *
  * @param requestTimeoutMs Maximum time for the entire request (default: 30 seconds)
@@ -78,12 +99,14 @@ private fun createDefaultHttpClient(config: HttpConfig) =
  * @param baseUrl Base URL for the drand API (default: https://api.drand.sh)
  * @param config HTTP timeout configuration (optional, uses defaults if not specified)
  * @param httpClient Custom HttpClient instance (optional, for testing/customization)
+ * @throws IllegalArgumentException if baseUrl is invalid for HTTP transport
  */
 class DrandHttpApi(
-    private val baseUrl: String = "https://api.drand.sh",
+    baseUrl: String = "https://api.drand.sh",
     config: HttpConfig = HttpConfig(),
     private val httpClient: HttpClient = createDefaultHttpClient(config),
 ) : DrandApi {
+    private val baseUrl: String = validateHttpBaseUrl(baseUrl)
     override val beacons =
         object : DrandApi.BeaconOperations {
             private val resourceType = "beacons"

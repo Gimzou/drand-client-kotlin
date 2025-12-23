@@ -11,27 +11,6 @@ import love.drand.storage.NoOpCache
 import love.drand.storage.SimpleCache
 
 /**
- * Validates a base URL for the drand API.
- *
- * @throws IllegalArgumentException if the URL is invalid
- */
-private fun validateBaseUrl(baseUrl: String): String {
-    require(baseUrl.isNotBlank()) {
-        "Base URL cannot be blank"
-    }
-
-    require(baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
-        "Base URL must start with http:// or https://, got: $baseUrl"
-    }
-
-    require(!baseUrl.endsWith("/")) {
-        "Base URL should not end with a trailing slash, got: $baseUrl"
-    }
-
-    return baseUrl
-}
-
-/**
  * Client for interacting with the drand distributed randomness network.
  *
  * This client provides verified access to drand beacons with automatic
@@ -76,14 +55,14 @@ class DrandClient(
      * @param baseUrl The base URL of the drand API endpoint (default: https://api.drand.sh)
      * @param httpConfig HTTP timeout configuration (optional, uses defaults if not specified)
      * @param enableCache Whether to enable caching of chain information (default: true)
-     * @throws IllegalArgumentException if baseUrl is invalid
+     * @throws IllegalArgumentException if baseUrl is invalid for HTTP transport
      */
     constructor(
         baseUrl: String = "https://api.drand.sh",
         httpConfig: HttpConfig = HttpConfig(),
         enableCache: Boolean = true,
     ) : this(
-        DrandHttpApi(validateBaseUrl(baseUrl), httpConfig),
+        DrandHttpApi(baseUrl, httpConfig),
         cache = if (enableCache) SimpleCache() else NoOpCache(),
     )
 
