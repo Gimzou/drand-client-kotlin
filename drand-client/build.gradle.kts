@@ -11,6 +11,40 @@ plugins {
 group = "love.drand"
 version = "0.1.0"
 
+// Generate BuildConfig - configuration cache compatible
+val generateBuildConfig =
+    tasks.register("generateBuildConfig") {
+        // Capture values at configuration time (not execution time)
+        val projectVersion = project.version.toString()
+        val projectName = project.name
+
+        val outputDir = layout.buildDirectory.dir("generated/buildConfig/commonMain/kotlin")
+
+        inputs.property("version", projectVersion)
+        inputs.property("name", projectName)
+        outputs.dir(outputDir)
+
+        doLast {
+            val file = outputDir.get().file("love/drand/BuildConfig.kt").asFile
+            file.parentFile.mkdirs()
+            file.writeText(
+                """
+                |package love.drand
+                |
+                |/**
+                | * Build configuration generated at compile time.
+                | * Do not edit manually - this file is auto-generated.
+                | */
+                |internal object BuildConfig {
+                |    const val VERSION = "$projectVersion"
+                |    const val NAME = "$projectName"
+                |}
+                |
+                """.trimMargin(),
+            )
+        }
+    }
+
 kotlin {
     jvm {
         compilerOptions {
@@ -57,6 +91,9 @@ kotlin {
             languageSettings.optIn("kotlin.time.ExperimentalTime")
         }
         val commonMain by getting {
+            // Add generated BuildConfig to sources
+            kotlin.srcDir(layout.buildDirectory.dir("generated/buildConfig/commonMain/kotlin"))
+
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)
@@ -98,6 +135,15 @@ kotlin {
 
         val jsTest by getting {}
     }
+}
+
+// Ensure BuildConfig is generated before compilation and linting
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+    dependsOn(generateBuildConfig)
+}
+
+tasks.matching { it.name.startsWith("runKtlintCheckOver") || it.name.startsWith("runKtlintFormatOver") }.configureEach {
+    dependsOn(generateBuildConfig)
 }
 
 // Publishing configuration
