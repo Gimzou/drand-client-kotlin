@@ -16,15 +16,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import love.drand.BuildConfig
 import love.drand.DrandError
 import love.drand.network.data.ChainInfo
 import love.drand.network.data.HealthStatus
 import love.drand.network.data.RandomnessBeacon
-
-/**
- * Library version for User-Agent header
- */
-private const val CLIENT_VERSION = "0.1.0"
 
 /**
  * Validates an HTTP base URL for the drand API.
@@ -65,7 +61,7 @@ private fun createDefaultHttpClient(config: HttpConfig) =
         expectSuccess = true
 
         install(UserAgent) {
-            agent = "drand-kotlin-client-$CLIENT_VERSION"
+            agent = "drand-kotlin-client-${BuildConfig.VERSION}"
         }
 
         install(ContentNegotiation) {
