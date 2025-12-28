@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "love.drand"
-version = "0.1.0"
+version = "0.1.1"
 
 // Generate BuildConfig - configuration cache compatible
 val generateBuildConfig =

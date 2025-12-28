@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-12-28
+
+### Added
+
+#### Configuration & Usability
+- **Configurable HTTP timeouts** - New `HttpConfig` data class for customizing network timeouts
+  - Pass via `DrandClient(baseUrl, httpConfig = HttpConfig(...))`
+- **Configurable caching** - Control chain information caching behavior
+  - `enableCache` parameter in `DrandClient` constructor (default: true)
+  - `NoOpCache` implementation for disabling caching
+  - Refactored `Cache` into `SimpleCache` to implement `CacheInterface` for better extensibility
+- **Enhanced URL validation** - Better error messages for invalid base URLs
+
+#### Build & Release
+- **Dynamic version tracking** - Automatic version synchronization in User-Agent header
+  - Custom Gradle task generates `BuildConfig.kt` at build time
+  - Version automatically synced from `build.gradle.kts`
+  - No manual version updates needed in code
+
+### Changed
+- User-Agent header now uses `BuildConfig.VERSION` instead of hardcoded version
+
+### Technical Details
+- Build configuration improvements for automatic version management
+
 ## [0.1.0] - 2025-12-15
 
 ### Added
@@ -99,4 +124,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This is the initial public release targeting feedback from the drand and Kotlin Multiplatform communities. The implementation focuses on solid foundations with full cryptographic verification and comprehensive testing.
 
-[0.1.0]: https://github.com/Gimzou/drand-client-kotlin/releases/tag/v0.1.0
+[0.1.1]: https://github.com/Gimzou/drand-client-kotlin/releases/tag/0.1.1
+[0.1.0]: https://github.com/Gimzou/drand-client-kotlin/releases/tag/0.1.0
