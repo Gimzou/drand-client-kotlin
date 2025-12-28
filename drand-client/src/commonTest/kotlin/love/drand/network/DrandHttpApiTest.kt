@@ -41,6 +41,25 @@ class DrandHttpApiTest {
     }
 
     @Test
+    fun `client construction fails on invalid url`() =
+        runTest {
+            val invalidUrls =
+                listOf(
+                    "",
+                    "tcp://",
+                    "/api.drand.sh",
+                    "https://api.drand.sh/",
+                )
+
+            invalidUrls.forEach { url ->
+                val result = runCatching { DrandHttpApi(url) }
+                val exception = result.exceptionOrNull()
+                assertNotNull(exception)
+                assertTrue(exception is IllegalArgumentException)
+            }
+        }
+
+    @Test
     fun `404 error returns NotFound error`() =
         runTest {
             val mockEngine =
