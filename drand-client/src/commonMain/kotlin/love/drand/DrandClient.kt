@@ -3,9 +3,12 @@ package love.drand
 import io.ktor.utils.io.core.Closeable
 import love.drand.network.DrandApi
 import love.drand.network.DrandHttpApi
+import love.drand.network.HttpConfig
 import love.drand.network.data.ChainInfo
 import love.drand.network.data.RandomnessBeacon
 import love.drand.storage.Cache
+import love.drand.storage.NoOpCache
+import love.drand.storage.SimpleCache
 
 /**
  * Client for interacting with the drand distributed randomness network.
@@ -43,17 +46,25 @@ import love.drand.storage.Cache
  */
 class DrandClient(
     private val api: DrandApi,
-    private val cache: Cache<String, ChainInfo> = Cache(),
+    private val cache: Cache<String, ChainInfo> = SimpleCache(),
     private val verifier: BeaconVerificationService = BeaconVerificationService(),
 ) : Closeable {
     /**
      * Creates a client using HTTP transport with the specified base URL.
      *
      * @param baseUrl The base URL of the drand API endpoint (default: https://api.drand.sh)
+     * @param httpConfig HTTP timeout configuration (optional, uses defaults if not specified)
+     * @param enableCache Whether to enable caching of chain information (default: true)
+     * @throws IllegalArgumentException if baseUrl is invalid for HTTP transport
      */
     constructor(
         baseUrl: String = "https://api.drand.sh",
-    ) : this(DrandHttpApi(baseUrl))
+        httpConfig: HttpConfig = HttpConfig(),
+        enableCache: Boolean = true,
+    ) : this(
+        DrandHttpApi(baseUrl, httpConfig),
+        cache = if (enableCache) SimpleCache() else NoOpCache(),
+    )
 
     /**
      * Direct access to beacon operations (access by beacon ID).
