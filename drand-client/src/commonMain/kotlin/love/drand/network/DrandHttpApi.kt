@@ -7,6 +7,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
@@ -122,9 +123,20 @@ class DrandHttpApi(
                     httpClient.get("$baseUrl/v2/$resourceType/$id/rounds/latest").body()
                 }
 
-            override suspend fun next(id: String): Result<RandomnessBeacon> =
+            override suspend fun next(
+                id: String,
+                longPollingTimeoutMs: Long?,
+            ): Result<RandomnessBeacon> =
                 executeRequest {
-                    httpClient.get("$baseUrl/v2/$resourceType/$id/rounds/next").body()
+                    httpClient
+                        .get("$baseUrl/v2/$resourceType/$id/rounds/next") {
+                            timeout {
+                                requestTimeoutMillis = longPollingTimeoutMs ?: config.connectTimeoutMs
+                                // Socket timeout must be >= request timeout for long-polling
+                                socketTimeoutMillis = longPollingTimeoutMs ?: config.socketTimeoutMs
+                                connectTimeoutMillis = config.connectTimeoutMs
+                            }
+                        }.body()
                 }
 
             override suspend fun atRound(
@@ -160,9 +172,20 @@ class DrandHttpApi(
                     httpClient.get("$baseUrl/v2/$resourceType/$chainHash/rounds/latest").body()
                 }
 
-            override suspend fun next(chainHash: String): Result<RandomnessBeacon> =
+            override suspend fun next(
+                chainHash: String,
+                longPollingTimeoutMs: Long?,
+            ): Result<RandomnessBeacon> =
                 executeRequest {
-                    httpClient.get("$baseUrl/v2/$resourceType/$chainHash/rounds/next").body()
+                    httpClient
+                        .get("$baseUrl/v2/$resourceType/$chainHash/rounds/next") {
+                            timeout {
+                                requestTimeoutMillis = longPollingTimeoutMs ?: config.connectTimeoutMs
+                                // Socket timeout must be >= request timeout for long-polling
+                                socketTimeoutMillis = longPollingTimeoutMs ?: config.socketTimeoutMs
+                                connectTimeoutMillis = config.connectTimeoutMs
+                            }
+                        }.body()
                 }
 
             override suspend fun atRound(

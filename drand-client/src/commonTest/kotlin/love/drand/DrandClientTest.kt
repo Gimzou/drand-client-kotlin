@@ -29,7 +29,10 @@ class DrandClientTest {
                                 TODO("Not yet implemented")
                             }
 
-                            override suspend fun next(id: String): Result<RandomnessBeacon> {
+                            override suspend fun next(
+                                id: String,
+                                longPollingTimeoutMs: Long?,
+                            ): Result<RandomnessBeacon> {
                                 TODO("Not yet implemented")
                             }
 

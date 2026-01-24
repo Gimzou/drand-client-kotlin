@@ -99,9 +99,14 @@ interface DrandApi : Closeable {
          * Useful for real-time applications that need beacons as soon as they're available.
          *
          * @param id The beacon identifier (e.g., "default", "quicknet")
+         * @param longPollingTimeoutMs Maximum time to wait for the next beacon in milliseconds.
+         *        Should be set to at least 2x the beacon period to handle clock skew and network delays.
          * @return Result containing the next [RandomnessBeacon] when available, or [DrandError] on failure
          */
-        suspend fun next(id: String): Result<RandomnessBeacon>
+        suspend fun next(
+            id: String,
+            longPollingTimeoutMs: Long? = null,
+        ): Result<RandomnessBeacon>
 
         /**
          * Gets a specific randomness beacon by round number.
@@ -169,9 +174,14 @@ interface DrandApi : Closeable {
          * Useful for real-time applications that need beacons as soon as they're available.
          *
          * @param chainHash The chain hash (hex-encoded, 64 characters, no "0x" prefix)
+         * @param longPollingTimeoutMs Maximum time to wait for the next beacon in milliseconds.
+         *      Should be set to at least 2x the chain period to handle clock skew and network delays.
          * @return Result containing the next [RandomnessBeacon] when available, or [DrandError] on failure
          */
-        suspend fun next(chainHash: String): Result<RandomnessBeacon>
+        suspend fun next(
+            chainHash: String,
+            longPollingTimeoutMs: Long? = null,
+        ): Result<RandomnessBeacon>
 
         /**
          * Gets a specific randomness beacon by round number.

@@ -1,6 +1,11 @@
 package love.drand
 
 import io.ktor.utils.io.core.Closeable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
 import love.drand.network.DrandApi
 import love.drand.network.DrandHttpApi
 import love.drand.network.HttpConfig
@@ -150,6 +155,33 @@ class DrandClient(
     }
 
     /**
+     * Fetches and verifies the next round of randomness from a drand network.
+     *
+     * This method performs the complete verification pipeline:
+     * 1. Fetches chain configuration (cached if available)
+     * 2. Fetches next beacon, will wait until the beacon is released by the chain
+     * 3. Verifies the beacon cryptographically
+     *
+     * Note: When fetching the next beacon, the timeout should be adapted according to the
+     * chain
+     *
+     */
+    suspend fun getVerifiedNextBeacon(beaconId: String): Result<RandomnessBeacon> {
+        val chainInfo =
+            getChainInfo(beaconId).getOrElse {
+                return Result.failure(it)
+            }
+
+        val timeoutMs = (chainInfo.period * 2 * 1000)
+        val nextBeacon =
+            api.beacons.next(beaconId, timeoutMs).getOrElse {
+                return Result.failure(it)
+            }
+
+        return verifier.verifyBeacon(chainInfo, nextBeacon, nextBeacon.round)
+    }
+
+    /**
      * Fetches chain configuration information, with automatic caching.
      *
      * Chain information is cached per beacon ID to avoid redundant network calls.
@@ -172,6 +204,34 @@ class DrandClient(
 
         return result
     }
+
+    fun watchVerifiedBeacons(beaconId: String): Flow<Result<RandomnessBeacon>> =
+        flow {
+            val retryOnError = true
+            val maxRetries = 5
+            val retryDelayMs = 500L
+            var consecutiveErrors = 0
+
+            while (currentCoroutineContext().isActive) {
+                val result = getVerifiedNextBeacon(beaconId)
+
+                result.fold(
+                    onSuccess = { verifiedBeacon ->
+                        consecutiveErrors = 0
+                        emit(Result.success(verifiedBeacon))
+                    },
+                    onFailure = { error ->
+                        if (retryOnError && consecutiveErrors < maxRetries) {
+                            consecutiveErrors++
+                            delay(retryDelayMs)
+                        } else {
+                            emit(Result.failure(error))
+                            if (retryOnError) break
+                        }
+                    },
+                )
+            }
+        }
 
     override fun close() = api.close()
 }
