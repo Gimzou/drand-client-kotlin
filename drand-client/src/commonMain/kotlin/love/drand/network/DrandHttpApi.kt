@@ -131,7 +131,7 @@ class DrandHttpApi(
                     httpClient
                         .get("$baseUrl/v2/$resourceType/$id/rounds/next") {
                             timeout {
-                                requestTimeoutMillis = longPollingTimeoutMs ?: config.connectTimeoutMs
+                                requestTimeoutMillis = longPollingTimeoutMs ?: config.requestTimeoutMs
                                 // Socket timeout must be >= request timeout for long-polling
                                 socketTimeoutMillis = longPollingTimeoutMs ?: config.socketTimeoutMs
                                 connectTimeoutMillis = config.connectTimeoutMs
@@ -180,7 +180,7 @@ class DrandHttpApi(
                     httpClient
                         .get("$baseUrl/v2/$resourceType/$chainHash/rounds/next") {
                             timeout {
-                                requestTimeoutMillis = longPollingTimeoutMs ?: config.connectTimeoutMs
+                                requestTimeoutMillis = longPollingTimeoutMs ?: config.requestTimeoutMs
                                 // Socket timeout must be >= request timeout for long-polling
                                 socketTimeoutMillis = longPollingTimeoutMs ?: config.socketTimeoutMs
                                 connectTimeoutMillis = config.connectTimeoutMs

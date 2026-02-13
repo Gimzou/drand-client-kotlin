@@ -3,11 +3,13 @@ package love.drand.network
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import love.drand.DrandError
@@ -17,6 +19,13 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class DrandHttpApiTest {
+    private val httpConfig =
+        HttpConfig(
+            requestTimeoutMs = 100,
+            connectTimeoutMs = 100,
+            socketTimeoutMs = 100,
+        )
+
     private suspend fun withMockApi(
         mockEngine: MockEngine,
         block: suspend (DrandHttpApi) -> Unit,
@@ -24,11 +33,17 @@ class DrandHttpApiTest {
         val api =
             DrandHttpApi(
                 baseUrl = "https://api.drand.sh",
+                config = httpConfig,
                 httpClient =
                     HttpClient(mockEngine) {
                         expectSuccess = true
                         install(ContentNegotiation) {
                             json(Json { ignoreUnknownKeys = true })
+                        }
+                        install(HttpTimeout) {
+                            requestTimeoutMillis = httpConfig.requestTimeoutMs
+                            connectTimeoutMillis = httpConfig.connectTimeoutMs
+                            socketTimeoutMillis = httpConfig.socketTimeoutMs
                         }
                     },
             )
@@ -211,6 +226,97 @@ class DrandHttpApiTest {
                 val healthStatus = result.getOrNull()
                 assertNotNull(healthStatus)
                 assertEquals(1_000_000, healthStatus.current)
+            }
+        }
+
+    @Test
+    fun `beacon health endpoint throws network exception if timeout is reached`() =
+        runTest {
+            val timeout = httpConfig.requestTimeoutMs
+            val mockEngine =
+                MockEngine { request ->
+                    delay(timeout * 2)
+                    respond(
+                        content = """{}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+
+            withMockApi(mockEngine) { api ->
+                val result = api.beacons.health("some-id")
+                assertTrue(result.isFailure)
+
+                assertTrue(result.exceptionOrNull() is DrandError.NetworkError)
+            }
+        }
+
+    @Test
+    fun `beacon next endpoint supports long polling request with extended timeout`() =
+        runTest {
+            val timeout = httpConfig.requestTimeoutMs
+            val mockEngine =
+                MockEngine { request ->
+                    delay(timeout * 2)
+                    respond(
+                        content = """{"round": 1, "signature": "sig", "previous_signature": "prev"}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+
+            withMockApi(mockEngine) { api ->
+                val longPollingTimeoutMs = httpConfig.requestTimeoutMs * 4 // longer than delay
+                val nextBeacon = api.beacons.next("some-id", longPollingTimeoutMs).getOrThrow()
+
+                assertEquals(1L, nextBeacon.round)
+                assertEquals("sig", nextBeacon.signature)
+                assertEquals("prev", nextBeacon.previousSignature)
+            }
+        }
+
+    @Test
+    fun `beacon next endpoint times out if response exceeds long polling timeout`() =
+        runTest {
+            val timeout = httpConfig.requestTimeoutMs
+            val mockEngine =
+                MockEngine { request ->
+                    delay(timeout * 8) // Longer than any timeout
+                    respond(
+                        content = """{"round": 1, "signature": "sig", "previous_signature": "prev"}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+
+            withMockApi(mockEngine) { api ->
+                val longPollingTimeoutMs = httpConfig.requestTimeoutMs * 4
+                val result = api.beacons.next("some-id", longPollingTimeoutMs)
+
+                assertTrue(result.isFailure)
+                assertTrue(result.exceptionOrNull() is DrandError.NetworkError)
+            }
+        }
+
+    @Test
+    fun `beacon next endpoint uses default timeout when longPollingTimeoutMs is null`() =
+        runTest {
+            val timeout = httpConfig.requestTimeoutMs
+            val mockEngine =
+                MockEngine { request ->
+                    delay(timeout * 2) // Longer than default timeout
+                    respond(
+                        content = """{"round": 1, "signature": "sig", "previous_signature": "prev"}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+
+            withMockApi(mockEngine) { api ->
+                val result = api.beacons.next("some-id", longPollingTimeoutMs = null)
+
+                assertTrue(result.isFailure)
+                assertTrue(result.exceptionOrNull() is DrandError.NetworkError)
             }
         }
 }
