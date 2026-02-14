@@ -146,18 +146,20 @@ class DrandClientIntegrationTest {
             val receivedBeacons = mutableListOf<Beacon>()
             val done = CompletableDeferred<Unit>()
 
-            val subscription = client.watchVerifiedBeacons(
-                beaconId = "quicknet",
-                onBeacon = { beacon ->
-                    receivedBeacons.add(beacon)
-                    if (receivedBeacons.size >= 2) {
-                        done.complete(Unit)
-                    }
-                },
-                onError = { error ->
-                    done.completeExceptionally(Exception(error))
-                },
-            )
+            val subscription =
+                client
+                    .watchVerifiedBeacons(
+                        beaconId = "quicknet",
+                        onBeacon = { beacon ->
+                            receivedBeacons.add(beacon)
+                            if (receivedBeacons.size >= 2) {
+                                done.complete(Unit)
+                            }
+                        },
+                        onError = { error ->
+                            done.completeExceptionally(Exception(error))
+                        },
+                    )
 
             done.await()
             subscription.cancel()
