@@ -50,7 +50,7 @@ import love.drand.network.data.RandomnessBeacon
  * @see RandomnessBeacon
  * @see ChainInfo
  */
-class BeaconVerificationService {
+class BeaconVerificationService : BeaconVerifier {
     /**
      * Verifies a beacon against expected round and chain info.
      *
@@ -66,7 +66,7 @@ class BeaconVerificationService {
      * @return Result.success containing the verified beacon if all checks pass,
      *         or Result.failure with [DrandError] describing what failed
      */
-    fun verifyBeacon(
+    override fun verifyBeacon(
         chainInfo: ChainInfo,
         beacon: RandomnessBeacon,
         expectedRound: Long,

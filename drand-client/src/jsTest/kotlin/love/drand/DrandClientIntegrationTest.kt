@@ -1,5 +1,6 @@
 package love.drand
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.await
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
@@ -125,5 +126,55 @@ class DrandClientIntegrationTest {
 
             assertNotNull(exception.message)
             console.log("✓ Correctly rejected invalid round: ${exception.message}")
+        }
+
+    @Test
+    fun `waits for and verifies next beacon from quicknet`() =
+        runTest {
+            val beacon = client.getVerifiedNextBeacon("quicknet").await()
+
+            assertTrue(beacon.round > 0)
+            assertTrue(beacon.signature.isNotEmpty())
+            assertTrue(beacon.randomness.isNotEmpty())
+
+            console.log("✓ Verified next quicknet beacon at round ${beacon.round}")
+        }
+
+    @Test
+    fun `streams verified beacons from quicknet`() =
+        runTest {
+            val receivedBeacons = mutableListOf<Beacon>()
+            val done = CompletableDeferred<Unit>()
+
+            val subscription =
+                client
+                    .watchVerifiedBeacons(
+                        beaconId = "quicknet",
+                        onBeacon = { beacon ->
+                            receivedBeacons.add(beacon)
+                            if (receivedBeacons.size >= 2) {
+                                done.complete(Unit)
+                            }
+                        },
+                        onError = { error ->
+                            done.completeExceptionally(Exception(error))
+                        },
+                    )
+
+            done.await()
+            subscription.cancel()
+
+            assertEquals(2, receivedBeacons.size)
+            receivedBeacons.forEach { beacon ->
+                assertTrue(beacon.round > 0)
+                assertTrue(beacon.signature.isNotEmpty())
+                assertTrue(beacon.randomness.isNotEmpty())
+            }
+            assertTrue(
+                receivedBeacons[1].round > receivedBeacons[0].round,
+                "Rounds should be increasing",
+            )
+
+            console.log("✓ Streamed ${receivedBeacons.size} verified quicknet beacons")
         }
 }
