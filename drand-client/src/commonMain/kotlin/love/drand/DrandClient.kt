@@ -52,7 +52,7 @@ import love.drand.storage.SimpleCache
 class DrandClient(
     private val api: DrandApi,
     private val cache: Cache<String, ChainInfo> = SimpleCache(),
-    private val verifier: BeaconVerificationService = BeaconVerificationService(),
+    private val verifier: BeaconVerifier = BeaconVerificationService(),
 ) : Closeable {
     /**
      * Creates a client using HTTP transport with the specified base URL.
@@ -205,6 +205,30 @@ class DrandClient(
         return result
     }
 
+    /**
+     * Streams verified randomness beacons as they are published by the drand network.
+     *
+     * This function continuously polls for new beacons using long-polling and verifies
+     * each beacon cryptographically before emitting it. The stream will continue indefinitely
+     * until the coroutine is cancelled or the maximum number of consecutive errors is reached.
+     *
+     * The function implements automatic retry logic with exponential backoff for transient failures.
+     * After [maxRetries] consecutive failures, the error is emitted and the stream terminates.
+     *
+     * @param beaconId The beacon identifier (e.g., "default", "quicknet")
+     * @return A [Flow] of [Result]s containing verified [RandomnessBeacon]s on success,
+     *         or [DrandError] on failure. The flow completes when cancelled or after
+     *         max retries are exhausted.
+     *
+     * @sample
+     * ```kotlin
+     * client.watchVerifiedBeacons("quicknet")
+     *     .collect { result ->
+     *         result.onSuccess { beacon ->
+     *             println("New beacon: ${beacon.round}")
+     *         }
+     *     }
+     */
     fun watchVerifiedBeacons(beaconId: String): Flow<Result<RandomnessBeacon>> =
         flow {
             val retryOnError = true
