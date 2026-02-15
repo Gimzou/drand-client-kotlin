@@ -231,9 +231,9 @@ class DrandClient(
      */
     fun watchVerifiedBeacons(beaconId: String): Flow<Result<RandomnessBeacon>> =
         flow {
-            val retryOnError = true
             val maxRetries = 5
-            val retryDelayMs = 500L
+            val baseDelayMs = 500L
+            val maxDelayMs = 16_000L
             var consecutiveErrors = 0
 
             while (currentCoroutineContext().isActive) {
@@ -245,12 +245,14 @@ class DrandClient(
                         emit(Result.success(verifiedBeacon))
                     },
                     onFailure = { error ->
-                        if (retryOnError && consecutiveErrors < maxRetries) {
+                        if (consecutiveErrors < maxRetries) {
+                            val delayMs =
+                                minOf(baseDelayMs * (1L shl consecutiveErrors), maxDelayMs)
                             consecutiveErrors++
-                            delay(retryDelayMs)
+                            delay(delayMs)
                         } else {
                             emit(Result.failure(error))
-                            if (retryOnError) break
+                            break
                         }
                     },
                 )

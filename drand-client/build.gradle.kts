@@ -62,6 +62,8 @@ kotlin {
             testTask {
                 useKarma {
                     useChromeHeadless()
+                    // Note: this does not propagate into the generated karma.conf.js.
+                    // The actual timeout is set in karma.config.d/timeout.js.
                     useMocha {
                         timeout = "30000"
                     }
