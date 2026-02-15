@@ -100,6 +100,16 @@ kotlin {
                 api(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
+                
+                // Security fixes: Pin vulnerable transitive dependencies to secure versions
+                constraints {
+                    implementation("io.netty:netty-codec:4.1.125.Final")
+                    implementation("io.netty:netty-codec-http:4.1.129.Final")
+                    implementation("io.netty:netty-codec-http2:4.1.124.Final")
+                    implementation("io.netty:netty-handler:4.1.118.Final")
+                    implementation("io.vertx:vertx-core:4.5.24")
+                    implementation("io.netty:netty-common:4.1.118.Final")
+                }
             }
         }
 
