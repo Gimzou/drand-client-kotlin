@@ -9,6 +9,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -278,15 +279,9 @@ class DrandHttpApiTest {
     @Test
     fun `beacon next endpoint times out if response exceeds long polling timeout`() =
         runTest {
-            val timeout = httpConfig.requestTimeoutMs
             val mockEngine =
                 MockEngine { request ->
-                    delay(timeout * 8) // Longer than any timeout
-                    respond(
-                        content = """{"round": 1, "signature": "sig", "previous_signature": "prev"}""",
-                        status = HttpStatusCode.OK,
-                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
-                    )
+                    awaitCancellation() // Never respond — timeout is the only exit
                 }
 
             withMockApi(mockEngine) { api ->
@@ -301,15 +296,9 @@ class DrandHttpApiTest {
     @Test
     fun `beacon next endpoint uses default timeout when longPollingTimeoutMs is null`() =
         runTest {
-            val timeout = httpConfig.requestTimeoutMs
             val mockEngine =
                 MockEngine { request ->
-                    delay(timeout * 2) // Longer than default timeout
-                    respond(
-                        content = """{"round": 1, "signature": "sig", "previous_signature": "prev"}""",
-                        status = HttpStatusCode.OK,
-                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
-                    )
+                    awaitCancellation() // Never respond — timeout is the only exit
                 }
 
             withMockApi(mockEngine) { api ->
