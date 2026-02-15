@@ -141,19 +141,19 @@ kotlin {
 // Applied to JVM configurations only (Netty/Vert.x are JVM-specific transitive dependencies)
 // See: https://github.com/Gimzou/drand-client-kotlin/security
 // Managed by Aikido security scanning
-configurations.matching {
-    it.name.startsWith("jvm") &&
-            (it.name.contains("RuntimeClasspath") || it.name.contains("CompileClasspath"))
-}.configureEach {
-    resolutionStrategy {
-        eachDependency {
-            when {
-                requested.group == "io.vertx" && requested.name == "vertx-core" ->
-                    useVersion("4.5.24")
+configurations
+    .matching {
+        it.name.startsWith("jvm") && (it.name.contains("RuntimeClasspath") || it.name.contains("CompileClasspath"))
+    }.configureEach {
+        resolutionStrategy {
+            eachDependency {
+                when {
+                    requested.group == "io.vertx" && requested.name == "vertx-core" ->
+                        useVersion("4.5.24")
+                }
             }
         }
     }
-}
 
 // Ensure BuildConfig is generated before compilation and linting
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
