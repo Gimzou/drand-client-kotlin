@@ -108,6 +108,7 @@ dependencies {
 Watch the repository for security advisories:
 - [Security Advisories](https://github.com/Gimzou/drand-client-kotlin/security/advisories)
 - Enable GitHub notifications for security updates
+- We use [Aikido Security](https://www.aikido.dev/) to monitor vulnerabilities in our dependencies and their transitive dependencies.
 
 ## Disclosure Policy
 
