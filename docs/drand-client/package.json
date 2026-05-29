@@ -10,7 +10,7 @@
     "@noble/curves": "2.0.1",
     "@noble/hashes": "2.0.1",
     "@js-joda/core": "3.2.0",
-    "ws": "8.18.3"
+    "ws": "8.20.1"
   },
   "peerDependencies": {},
   "optionalDependencies": {},
